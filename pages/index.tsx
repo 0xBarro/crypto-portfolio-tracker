@@ -1,5 +1,16 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
+import processWallets from '../lib/processWallets'
+
+// 
+export async function getStaticProps() {
+  const allPostsData = processWallets()
+  return {
+    props: {
+      allPostsData
+    }
+  }
+}
 
 const Home: NextPage = () => {
   return (
