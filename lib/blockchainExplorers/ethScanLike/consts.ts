@@ -14,7 +14,8 @@ const polygon = {
     getAddressUrl(address: string): string {return `https://polygonscan.com/address/${address}`}
 }
 
-
-export default {
+const constObj = {
     polygon: polygon
 }
+
+export default constObj
