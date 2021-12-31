@@ -9,7 +9,7 @@ const polygon = {
     getInternalTxUrl(address: string,  _token?: string): string {return this.getTxEndpointUrl(address, 'txlistinternal', _token)},
     getNormalTxUrl(address: string, _token?: string): string {return this.getTxEndpointUrl(address, 'txlist', _token)},
     getERC20TxUrl(address: string,  _token?: string): string {return this.getTxEndpointUrl(address, 'tokentx', _token)},
-    getERC721TxUrl(address: string, _token?: string): string {return this.getTxEndpointUrl(address, 'tokenfttx', _token)},
+    getERC721TxUrl(address: string, _token?: string): string {return this.getTxEndpointUrl(address, 'tokennfttx', _token)},
     getTxUrl(tx: string): string {return `https://polygonscan.com/tx/${tx}`},
     getAddressUrl(address: string): string {return `https://polygonscan.com/address/${address}`}
 }
