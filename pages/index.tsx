@@ -7,7 +7,6 @@ export async function getStaticProps() {
   const allPostsData = processWallets()
   return {
     props: {
-      allPostsData
     }
   }
 }
