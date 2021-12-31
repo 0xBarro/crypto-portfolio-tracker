@@ -1,31 +1,38 @@
 import processEthWallet from './blockchainExplorers/ethScanLike/processEthWallet'
+import { walletProcessResult, chainProcessResult } from './blockchainExplorers/interfaces'
 import dotenv from 'dotenv'
 dotenv.config()
-
-interface chainProcess {
-    [blockchainName: string]: CallableFunction
-}
 
 const chainProcessFunction: chainProcess = {
     polygon: processEthWallet
 }
 
+const processWalletsChain = async (chain: string): Promise<chainProcessResult> => {
+
+    const wallets: Array<string> | undefined = process.env[chain]?.split(',').filter(w => w.length > 5)
+
+    if (wallets === undefined) { return undefined }
+    else {
+        const processFunction: CallableFunction = chainProcessFunction[blockchainName]
+        const chainResult: Promise<Array<number>> = Promise.all(wallets.map(w => processFunction(w, blockchainName, debug)))
+        return chainResult
+    }
+}
+
 // Get all the wallets from the .env file
-const processWallets = async (debug=false): Promise<Array<Promise<object>>> => {
+const processAll = (debug = false): Promise<{ chain: string, wallets: { wallet: string, txs: Array<object> } }> => {
     const chainKeys: Array<string> = ['POLYGON_WALLETS']
 
-    return chainKeys.map(chain => {
+    const allChainsResults = chainKeys.filter(ck => ck in process.env).map(chain => {
 
         // Interate through each chain
-        const blockchainName: keyof chainProcess = chain.split('_')[0].toLowerCase()
-        const wallets: string|undefined = process.env[chain]
+        const blockchainName: keyof typeof process.env = chain.split('_')[0].toLowerCase()
 
-        if (wallets === undefined){return Promise.all([])} 
-        else {
-            const processFunction: CallableFunction = chainProcessFunction[blockchainName]
-            return Promise.all(wallets.split(',').map(w => processFunction(w, chain, debug)))
-        }
+
     })
-} 
+
+    const allWallsts = Promise.all(allChainsResults).then(p => [...p.filter(k => k !== undefined)])
+    return allWallsts
+}
 
 export default processWallets
