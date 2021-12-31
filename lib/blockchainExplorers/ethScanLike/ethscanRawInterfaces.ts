@@ -1,4 +1,4 @@
-interface baseTx {
+export interface baseTx {
     blocknumber: string,
     timestamp: string,
     hash: string,
@@ -6,11 +6,14 @@ interface baseTx {
     gasUsed: string
     from: string,
     to: string
+    txType?: string,
+    value?: number,
+    gasPrice?: number
+    tokenDecimal?: string,
 }
 
 export interface internalRawTx extends baseTx {
     blockHash: string,
-    value: string,
     isError: string,
     input: string,
     contractAddress: string,
@@ -21,8 +24,6 @@ export interface internalRawTx extends baseTx {
 export interface normalRawTx extends baseTx {
     blockHash: string,
     transactionIndex: string,
-    value: string,
-    gasPrice: string,
     isError: string,
     txreceipt_status: string,
     input: string,
@@ -35,12 +36,9 @@ export interface tokenERC20RawTx extends baseTx {
     nonce: string,
     blockHash: string,
     contractAddress: string,
-    value: string,
     tokenName: string,
     tokenSymbol: string,
-    tokenDecimal: string,
     transactionIndex: string,
-    gasPrice: string,
     cumulativeGasUsed: string,
     input: string,
     confirmations: string
@@ -53,9 +51,7 @@ export interface tokenNFTRawTx  extends baseTx {
     tokenID: string,
     tokenName: string,
     tokenSymbol: string,
-    tokenDecimal: string,
     transactionIndex: string,
-    gasPrice: string,
     cumulativeGasUsed: string,
     input: string,
     confirmations: string

@@ -1,14 +1,16 @@
 import constObj from "./consts"
-import { walletProcessResult} from "../interfaces"
+import { walletProcessResult, processedTx} from "../interfaces"
 import {processTimestamp } from "../../utils"
-import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
+import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx,} from "./ethscanRawInterfaces"
+import { text } from "stream/consumers"
 
-const getTxJson = async (url: string): Promise<Array<normalRawTx|internalRawTx|tokenERC20RawTx|tokenNFTRawTx>> => {
+const getTxJson = async (url: string) => {
     console.log('Loading data from: ' + url)
     try {
         const r = await fetch(url)
-        const r_1 = await r.json()
-        return r_1['result']
+        const r_1  = await r.json()
+        const r_2: Array<normalRawTx>|Array<internalRawTx>|Array<tokenERC20RawTx>|Array<tokenNFTRawTx> = r_1['result']
+        return r_2
     } catch (e) {
         throw `Error in URL ${url}. ${e}`
     }
@@ -20,23 +22,30 @@ const getEthWalletTx = async (wallet: string, blockchainName: keyof typeof const
     if (!(blockchainName in constObj)) {throw `${blockchainName} not in constObj keys ${Object.keys(constObj)}`}
     const chainConsts = constObj[blockchainName]
 
-    const normalTx: Promise<Array<normalRawTx>> = getTxJson(chainConsts.getNormalTxUrl(wallet)).catch(e => {throw `Error getting normal transactions in wallet ${wallet} on chain ${blockchainName}. ${e}`})
-    const internalTx = getTxJson(chainConsts.getInternalTxUrl(wallet)).catch(e => {throw `Error getting Internal transactions in wallet ${wallet} on chain ${blockchainName}`})
-    const erc20Tx = getTxJson(chainConsts.getERC20TxUrl(wallet)).catch(e => {throw `Error getting ERC20 transactions in wallet ${wallet} on chain ${blockchainName}`})
-    const erc721Tx = getTxJson(chainConsts.getERC721TxUrl(wallet)).catch(e => {throw `Error getting ERC721 transactions in wallet ${wallet} on chain ${blockchainName}`})
+    const normalTx = getTxJson(chainConsts.getNormalTxUrl(wallet)).then(tx => {return {...tx, txType: 'normal'}}).catch(e => {throw `Error getting normal transactions in wallet ${wallet} on chain ${blockchainName}. ${e}`})
+    const internalTx = getTxJson(chainConsts.getInternalTxUrl(wallet)).then(tx => {return {...tx, txType: 'internal'}}).catch(e => {throw `Error getting Internal transactions in wallet ${wallet} on chain ${blockchainName}`})
+    const erc20Tx = getTxJson(chainConsts.getERC20TxUrl(wallet)).then(tx => {return {...tx, txType: 'token'}}).catch(e => {throw `Error getting ERC20 transactions in wallet ${wallet} on chain ${blockchainName}`})
+    const erc721Tx = getTxJson(chainConsts.getERC721TxUrl(wallet)).then(tx => {return {...tx, txType: 'nft'}}).catch(e => {throw `Error getting ERC721 transactions in wallet ${wallet} on chain ${blockchainName}`})
 
-    const allTx = await Promise.all([normalTx, internalTx, erc20Tx, erc721Tx]).then(t => t.reduce((l, r) => l.concat(r), []))
+    const allTx = await Promise.all([normalTx, internalTx, erc20Tx, erc721Tx]).then(t => t.flat().map(t => processEthWalletTx(wallet, t)))
 
     return {wallet: wallet, txs: allTx}
 }
 
-// const processEthWalletTx = (rawTx: object): tx => {
-//     return {
-//         txHash: rawTx.hash,
-//         tokens: {},
-//         date: processTimestamp(rawTx.timeStamp),
+const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx): processedTx => {
+    const tokenDecimal: number = (rawTx.tokenDecimal === undefined) ? 1 : (10 ** +rawTx.tokenDecimal)
+    const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value / tokenDecimal
+    const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
+    const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
 
-//     }
-// }
+    return {
+        amount: amount,
+        date: processTimestamp(+rawTx.timestamp),
+        gasPaid: gasPaid,
+        txHash: rawTx.hash,
+        from: rawTx.from,
+        to: rawTx.to
+    }
+}
 
 export default getEthWalletTx

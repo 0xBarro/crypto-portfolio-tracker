@@ -9,16 +9,32 @@ interface chainProcessResult {
     wallets: walletProcessResult
 }
 
+interface dateObj {
+    dateStr: string,
+    dateOnlyStr: string
+    dateObj: Date,
+    timestamp: number
+}
+
 interface processedTx {
     amount: number,
+    date: dateObj,
+    gasPaid: number,
+    txHash: string,
+    from: string,
+    to: string,
+}
+
+interface processedSwap {
+    amount: number,
     tokens: {token: tokenTx},
-    date: {fullDateStr: string, dateOnlyStr: string},
+    date: dateObj,
     gasPaid: number,
     txHash: string,
     from: string,
     to: string,
     balanceAfterTx: {token: balanceAfterTx},
-    valueAfterTx: number,
+    valueAfterTx: number 
 }
 
 interface tokenCollection{
@@ -32,4 +48,4 @@ interface tokenTx extends tokenCollection{
 
 interface balanceAfterTx extends tokenCollection{}
 
-export type {walletProcessResult, chainProcessResult}
+export type {walletProcessResult, chainProcessResult, processedTx, processedSwap, dateObj}
