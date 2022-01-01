@@ -1,0 +1,11 @@
+[
+    {
+        "id": "TestCoin1",
+        "symbol": "TestCoint1Symbol",
+        "name": "TestCoin1Name",
+        "platforms": {
+            "platform1": "0x123",
+            "platform2": "0x1234"
+        }
+    }
+]
