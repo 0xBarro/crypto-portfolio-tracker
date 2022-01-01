@@ -4,9 +4,10 @@ import processWallets from '../lib/processWallets'
 
 // 
 export async function getStaticProps() {
-  const allPostsData = processWallets()
+  const allTxdata: Array<object> = await processWallets()
   return {
     props: {
+      txData: allTxdata,
     }
   }
 }
