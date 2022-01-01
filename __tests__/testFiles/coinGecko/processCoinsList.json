@@ -7,5 +7,13 @@
             "platform1": "0x123",
             "platform2": "0x1234"
         }
+    },
+    {
+        "id": "TestCoin2",
+        "symbol": "TestCoint2Symbol",
+        "name": "TestCoin2Name",
+        "platforms": {
+            "platform1": "0x1234"
+        }
     }
 ]
