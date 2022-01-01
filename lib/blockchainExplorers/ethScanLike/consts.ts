@@ -11,7 +11,6 @@ interface ethscanSetupObg {
     getAddressUrl: (address: string) => string,
     gasToken: string,
     wrappedGasToken: string,
-    gasTokenAddress: string,
     wrappedGasTokenAddress: string
 }
 
@@ -28,7 +27,6 @@ const polygon: ethscanSetupObg = {
     getAddressUrl(address: string): string {return `https://polygonscan.com/address/${address}`},
     gasToken: 'MATIC',
     wrappedGasToken: 'WMATIC',
-    gasTokenAddress: '0x0000000000000000000000000000000000001010',
     wrappedGasTokenAddress: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270'
 }
 
