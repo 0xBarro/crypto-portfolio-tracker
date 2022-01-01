@@ -25,7 +25,3 @@ export interface processedCoinList {
 export interface coinHistory {
     [date: string]: number
 }
-
-// export interface coinHistory {
-//     [dateStr: string]: number
-// }
