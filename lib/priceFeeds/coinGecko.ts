@@ -53,6 +53,6 @@ export const getCoinHistory = async (token: string, currency='eur', days=365): P
 }
 
 export const getTokenPriceAtDate = (tokenHistory: coinHistory, dateStr: string): number | undefined => {
-    if (dateStr in tokenHistory){tokenHistory[dateStr]}
+    if (dateStr in tokenHistory){return tokenHistory[dateStr]}
     else {return undefined}
 }
