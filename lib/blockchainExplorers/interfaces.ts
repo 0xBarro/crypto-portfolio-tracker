@@ -1,22 +1,29 @@
-interface walletProcessResult {
+import constObj from "./ethScanLike/consts"
+
+export type walletProcessFunc = (wallet: string, blockchainName: keyof typeof constObj, debug: boolean) =>  Promise<walletProcessResult>
+
+export interface walletProcessResult {
     wallet: string,
-    txs: Array<processedTx>
-
+    txs: processedTx[]
 }
 
-interface chainProcessResult {
+export interface chainProcessResult {
     chain: string,
-    wallets: walletProcessResult
+    wallets: walletProcessResult[]
 }
 
-interface dateObj {
+export interface allProcessResult {
+    [chain: string]: walletProcessResult[]
+}
+
+export interface dateObj {
     dateStr: string,
     dateOnlyStr: string
     dateObj: Date,
     timestamp: number
 }
 
-interface processedTx {
+export interface processedTx {
     amount: number,
     date: dateObj,
     gasPaid: number,
@@ -25,7 +32,7 @@ interface processedTx {
     to: string,
 }
 
-interface processedSwap {
+export interface processedSwap {
     amount: number,
     tokens: {token: tokenTx},
     date: dateObj,
@@ -37,15 +44,13 @@ interface processedSwap {
     valueAfterTx: number 
 }
 
-interface tokenCollection{
+export interface tokenCollection{
     totalValue: number,
     amount: number
 }
 
-interface tokenTx extends tokenCollection{
+export interface tokenTx extends tokenCollection{
     unitPrice: number,
 }
 
-interface balanceAfterTx extends tokenCollection{}
-
-export type {walletProcessResult, chainProcessResult, processedTx, processedSwap, dateObj}
+export interface balanceAfterTx extends tokenCollection{}

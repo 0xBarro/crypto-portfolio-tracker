@@ -27,7 +27,7 @@ const getEthWalletTx = async (wallet: string, blockchainName: keyof typeof const
     const erc20Tx = getTxJson(chainConsts.getERC20TxUrl(wallet)).then(tx => {return {...tx, txType: 'token'}}).catch(e => {throw `Error getting ERC20 transactions in wallet ${wallet} on chain ${blockchainName}`})
     const erc721Tx = getTxJson(chainConsts.getERC721TxUrl(wallet)).then(tx => {return {...tx, txType: 'nft'}}).catch(e => {throw `Error getting ERC721 transactions in wallet ${wallet} on chain ${blockchainName}`})
 
-    const allTx = await Promise.all([normalTx, internalTx, erc20Tx, erc721Tx]).then(t => t.flat().map(t => processEthWalletTx(wallet, t)))
+    const allTx: processedTx[] = await Promise.all([normalTx, internalTx, erc20Tx, erc721Tx]).then(t => t.flat().map(t => processEthWalletTx(wallet, t)))
 
     return {wallet: wallet, txs: allTx}
 }

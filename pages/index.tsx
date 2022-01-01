@@ -1,10 +1,11 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import processWallets from '../lib/processWallets'
+import processAll from '../lib/processWallets'
 
-// 
+
 export async function getStaticProps() {
-  const allTxdata: Array<object> = await processWallets()
+  const allTxdata = await processAll(true)
+  console.log(allTxdata)
   return {
     props: {
       txData: allTxdata,
@@ -12,7 +13,7 @@ export async function getStaticProps() {
   }
 }
 
-const Home: NextPage = () => {
+const Home: NextPage = (props) => {
   return (
     <div className='bg-slate-200 min-h-screen p-5'>
       <Head>
