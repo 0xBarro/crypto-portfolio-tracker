@@ -34,10 +34,7 @@ const getEthWalletTx = async (wallet: string, blockchainName: keyof typeof const
     const allTxTypes = await Promise.all([normalTx, internalTx, erc20Tx, erc721Tx]).then(t => t.flat())
     const allTx: processedTx[] = allTxTypes.map(t => processEthWalletTx(wallet, t)).filter((t): t is processedTx => t.txHash !== undefined)
 
-    const result: walletProcessResult = {}
-    result[wallet] = allTx
-
-    return result
+    return [wallet, allTx]
 }
 
 const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx): processedTx => {

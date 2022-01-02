@@ -2,17 +2,12 @@ import constObj from "./ethScanLike/consts"
 
 export type walletProcessFunc = (wallet: string, blockchainName: keyof typeof constObj, debug: boolean) =>  Promise<walletProcessResult>
 
-export interface walletProcessResult {
-    [wallet: string]: processedTx[]
-}
+export type walletProcessResult  = [string, processedTx[]]
 
-export interface chainProcessResult {
-    chain: string,
-    wallets: walletProcessResult[]
-}
+export type chainProcessResult = [string, {[wallet: string]: processedTx[]}]
 
 export interface allProcessResult {
-    [chain: string]: walletProcessResult[]
+    [chain: string]: {[wallet: string]: processedTx[]}
 }
 
 export interface dateObj {

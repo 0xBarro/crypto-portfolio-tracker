@@ -19,7 +19,7 @@ const processWalletsChain = async (chain: string, debug: boolean): Promise<chain
     else {
         const processFunction: CallableFunction = chainProcessFunction[blockchainName]
         const chainResult: walletProcessResult[] = await Promise.all(wallets.map(w => processFunction(w, blockchainName, debug)))
-        return {chain: blockchainName, wallets: chainResult}
+        return [blockchainName, Object.fromEntries(chainResult)]
     }
 }
 
@@ -31,8 +31,8 @@ const processAll = async (debug = false): Promise<allProcessResult> => {
         .filter(ck => ck in process.env)
         .map(chain => processWalletsChain(chain, debug))
 
-    const allResults = await Promise.all(allChainsResults)
-        .then(p => p.filter((t): t is chainProcessResult => t !== undefined).map(p => [p.chain, p.wallets]))
+    const allResults: chainProcessResult[] = await Promise.all(allChainsResults)
+        .then(p => p.filter((t): t is chainProcessResult => t !== undefined))
 
     return Object.fromEntries(allResults)
 }
