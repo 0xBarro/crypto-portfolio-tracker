@@ -3,8 +3,7 @@ import constObj from "./ethScanLike/consts"
 export type walletProcessFunc = (wallet: string, blockchainName: keyof typeof constObj, debug: boolean) =>  Promise<walletProcessResult>
 
 export interface walletProcessResult {
-    wallet: string,
-    txs: processedTx[]
+    [wallet: string]: processedTx[]
 }
 
 export interface chainProcessResult {
@@ -19,7 +18,6 @@ export interface allProcessResult {
 export interface dateObj {
     dateStr: string,
     dateOnlyStr: string
-    dateObj: Date,
     timestamp: number
 }
 
@@ -27,6 +25,7 @@ export interface processedTx {
     amount: number,
     date: dateObj,
     gasPaid: number,
+    gasUsed: number,
     txHash: string,
     from: string,
     to: string,

@@ -7,7 +7,7 @@ const dateToDateStr = (date: Date): string => {
 const processTimestamp = (timestamp: number, mult=1000): dateObj => {
     const dateObj =  new Date(timestamp*mult)
     const dateStr =  dateObj.toUTCString()  
-    return {dateObj: dateObj, dateStr: dateStr, dateOnlyStr: dateToDateStr(dateObj), timestamp: timestamp}
+    return {dateStr: dateStr, dateOnlyStr: dateToDateStr(dateObj), timestamp: timestamp}
 }
 
 export {processTimestamp}
