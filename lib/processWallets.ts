@@ -3,10 +3,6 @@ import { walletProcessResult, chainProcessResult, processedTx, allProcessResult,
 import dotenv from 'dotenv'
 dotenv.config()
 
-const chainProcessFunction: {[chain: string]: walletProcessFunc} = {
-    polygon: getEthWalletTx
-}
-
 const processWalletsChain = async (chain: string, debug: boolean): Promise<chainProcessResult | undefined> => {
 
     // Interate through each chain
