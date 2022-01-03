@@ -12,11 +12,11 @@ export interface baseTx {
     contractAddress: string
     tokenName: string,
     tokenSymbol: string,
+    tokenDecimal: number,
+    value: number,
 }
 
 export interface internalRawTx extends baseTx {
-    value: number,
-    tokenDecimal: number,
     isError: string,
     input: string,
     errCode: string,
@@ -25,7 +25,6 @@ export interface internalRawTx extends baseTx {
 
 export interface normalRawTx extends baseTx {
     tokenDecimal: number,
-    value: number,
     transactionIndex: string,
     isError: string,
     txreceipt_status: string,
@@ -36,10 +35,7 @@ export interface normalRawTx extends baseTx {
 
 export interface tokenERC20RawTx extends baseTx {
     tokenDecimal: number,
-    value: number
     nonce: string,
-    tokenName: string,
-    tokenSymbol: string,
     transactionIndex: string,
     cumulativeGasUsed: string,
     input: string,
@@ -49,8 +45,6 @@ export interface tokenERC20RawTx extends baseTx {
 export interface tokenNFTRawTx  extends baseTx {
     nonce: string,
     tokenID: string,
-    tokenName: string,
-    tokenSymbol: string,
     transactionIndex: string,
     cumulativeGasUsed: string,
     input: string,

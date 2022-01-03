@@ -111,43 +111,43 @@ export class EthTxGetter {
     }
 
     getERC721Txs(address: string, _token?: string): Promise<tokenNFTRawTx[]> {
-        return this.getTxJson(this.getERC721TxUrl(address, _token))
+        return this.getTxJson(this.getERC721TxUrl(address, _token)).then(p => p.map((nftTx: tokenNFTRawTx): tokenNFTRawTx => {nftTx.value = 1; return nftTx}))
     }
 
-    getAllTxs(address: string, _token?: string): Promise<(normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx)[]> {
+    getAllTxs(address: string, _token?: string): Promise<processedTx[]> {
         const allTx = Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
-        ]).then(p => p.flat())
+        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx)))
         return allTx
     }
 }
 
 
-// const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx): processedTx => {
-//     const tokenDecimal: number = (rawTx.tokenDecimal === undefined) ? 1 : (10 ** -rawTx.tokenDecimal)
-//     const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value * tokenDecimal // For NFT transactionst here is no value field
-//     const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
-//     const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
+const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx): processedTx => {
+    const tokenDecimal: number = (rawTx.tokenDecimal === undefined) ? 1 : (10 ** -rawTx.tokenDecimal)
+    const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value * tokenDecimal // For NFT transactionst here is no value field
+    const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
+    const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
 
-//     // TODO: Fix amount for gas token because there is not tokenDecimal field
-//     // TODO: Infer Matic/WMATIC transactions
-//     // TODO: Process the swaps
-//     // TODO: Merge with coingecko API
-//     // TODO: Identify swap type
-//     // TODO: Calculate Gains
+    // TODO: Fix amount for gas token because there is not tokenDecimal field
+    // TODO: Infer Matic/WMATIC transactions
+    // TODO: Process the swaps
+    // TODO: Merge with coingecko API
+    // TODO: Identify swap type
+    // TODO: Calculate Gains
 
-//     return {
-//         amount: amount,
-//         date: processTimestamp(+rawTx.timestamp),
-//         gasPaid: gasPaid,
-//         txHash: rawTx.hash,
-//         from: rawTx.from,
-//         to: rawTx.to,
-//         gasUsed: +rawTx.gasUsed
-//     }
-// }
+    return {
+        amount: amount,
+        date: processTimestamp(+rawTx.timestamp),
+        gasPaid: gasPaid,
+        txHash: rawTx.hash,
+        from: rawTx.from,
+        to: rawTx.to,
+        gasUsed: +rawTx.gasUsed
+    }
+}
 
 export default EthTxGetter
