@@ -1,4 +1,3 @@
-import EthTxGetter from './blockchainExplorers/ethScanLike/processEthWallet'
 import {chainProcessResult, allProcessResult } from './blockchainExplorers/interfaces'
 import constObj from './blockchainExplorers/ethScanLike/consts'
 import dotenv from 'dotenv'

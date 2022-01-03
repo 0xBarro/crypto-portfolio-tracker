@@ -1,8 +1,6 @@
-import constObj from "./consts"
 import { walletProcessResult, processedTx } from "../interfaces"
 import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
-import internal from "stream"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
