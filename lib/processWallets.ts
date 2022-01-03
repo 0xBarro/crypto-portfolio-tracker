@@ -1,5 +1,6 @@
-import getEthWalletTx from './blockchainExplorers/ethScanLike/processEthWallet'
-import { walletProcessResult, chainProcessResult, processedTx, allProcessResult, walletProcessFunc } from './blockchainExplorers/interfaces'
+import EthTxGetter from './blockchainExplorers/ethScanLike/processEthWallet'
+import {chainProcessResult, allProcessResult } from './blockchainExplorers/interfaces'
+import constObj from './blockchainExplorers/ethScanLike/consts'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -13,11 +14,11 @@ const processWalletsChain = async (chain: string, debug: boolean): Promise<chain
 
     if (wallets === undefined) { console.log(`No wallets found`); return undefined }
     else {
-        const processFunction: CallableFunction = chainProcessFunction[blockchainName]
-        const chainResult: walletProcessResult[] = await Promise.all(wallets.map(w => processFunction(w, blockchainName, debug)))
-        return [blockchainName, Object.fromEntries(chainResult)]
+        const txGetter = constObj[blockchainName]
+        const result = await Promise.all(wallets.map(wallet => txGetter.getAllTxs(wallet)))
+        return [blockchainName, Object.fromEntries(result)]
     }
-}
+    }
 
 // Get all the wallets from the .env file
 const processAll = async (debug = false): Promise<allProcessResult> => {

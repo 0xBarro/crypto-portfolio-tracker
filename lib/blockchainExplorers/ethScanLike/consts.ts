@@ -16,7 +16,7 @@ const polygon = new EthTxGetter(
         (address: string): string => {return `https://polygonscan.com/address/${address}`}
 )
 
-const constObj = {
+const constObj: {[key: string]: EthTxGetter } = {
     polygon: polygon
 }
 

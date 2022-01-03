@@ -114,14 +114,15 @@ export class EthTxGetter {
         return this.getTxJson(this.getERC721TxUrl(address, _token)).then(p => p.map((nftTx: tokenNFTRawTx): tokenNFTRawTx => {nftTx.value = 1; return nftTx}))
     }
 
-    getAllTxs(address: string, _token?: string): Promise<processedTx[]> {
+    async getAllTxs(address: string, _token?: string): Promise<walletProcessResult> {
         const allTx = Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
         ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx)))
-        return allTx
+
+        return [address, await allTx]
     }
 }
 
