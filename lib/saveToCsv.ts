@@ -1,0 +1,30 @@
+import fs from 'fs'
+import path from 'path/posix'
+
+const saveToCsv = (obj: {[key: string]: string|number}[], fileName: string, outputFolder='output'): void => {
+
+    // Create the folder
+    if (!fs.existsSync(outputFolder)){
+        console.log('Creating folder: ' + outputFolder)
+        fs.mkdirSync(outputFolder)
+    }
+
+    // Delete file if it exists
+    const fullFilePath = path.join(outputFolder, fileName)
+
+    if (!fs.existsSync(fullFilePath)){
+        console.log('Removing file: ' + fullFilePath)
+    }
+
+    //  Save the columns
+    const columnsToSave = Object.keys(obj[0])
+    fs.writeFileSync(fullFilePath, columnsToSave.reduce((l, r) => l + ',' + r) + '\n')
+
+    obj.forEach(e => {
+        const rowToSave = columnsToSave.map(k => String(e[k])).reduce((l, r) => l + ',' + r) + '\n'
+        fs.appendFileSync(fullFilePath, rowToSave)
+    })
+
+}
+
+export default saveToCsv
