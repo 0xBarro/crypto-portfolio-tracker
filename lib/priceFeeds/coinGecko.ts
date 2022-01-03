@@ -1,6 +1,5 @@
 import { processTimestamp} from "../utils";
 import { coinList, processedCoinList, nameMapType, coinHistory } from "./interfaces";
-import { processedTx } from "../blockchainExplorers/interfaces"
 
 
 export const listCoins = async (): Promise<processedCoinList> => {

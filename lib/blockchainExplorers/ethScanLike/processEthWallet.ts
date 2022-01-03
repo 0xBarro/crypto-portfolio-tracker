@@ -48,9 +48,9 @@ export class EthTxGetter {
     async getInternalTxs(address: string, _token?: string): Promise<internalRawTx[]> {
         const internalRawTx: internalRawTx[] = await this.getTxJson(this.getInternalTxUrl(address, _token)).then(p => p.map((iTx: internalRawTx): internalRawTx => {
             iTx.tokenDecimal = 18
-            iTx.tokenName = 'Matic',
-                iTx.tokenSymbol = 'Matic',
-                iTx.contractAddress = ''
+            iTx.tokenName = this.gasToken,
+            iTx.tokenSymbol = this.gasToken,
+            iTx.contractAddress = ''
             return iTx
         }))
 
@@ -79,8 +79,8 @@ export class EthTxGetter {
             return p.filter((nTx: normalRawTx) => nTx.txreceipt_status === '1')
              .map((nTx: normalRawTx): normalRawTx => {
                 nTx.tokenDecimal = 18
-                nTx.tokenName = 'Matic',
-                nTx.tokenSymbol = 'Matic',
+                nTx.tokenName = this.gasToken,
+                nTx.tokenSymbol = this.gasToken,
                 nTx.contractAddress = ''
                 return nTx
             })
