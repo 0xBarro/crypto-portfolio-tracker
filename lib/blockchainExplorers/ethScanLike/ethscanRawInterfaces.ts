@@ -10,6 +10,8 @@ export interface baseTx {
     txType?: string,
     gasPrice?: number
     contractAddress: string
+    tokenName: string,
+    tokenSymbol: string,
 }
 
 export interface internalRawTx extends baseTx {

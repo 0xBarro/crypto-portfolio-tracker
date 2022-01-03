@@ -1,91 +1,120 @@
 import constObj from "./consts"
-import { walletProcessResult, processedTx} from "../interfaces"
-import {processTimestamp } from "../../utils"
-import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx} from "./ethscanRawInterfaces"
+import { walletProcessResult, processedTx } from "../interfaces"
+import { processTimestamp } from "../../utils"
+import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
 import internal from "stream"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
 
     getTxEndpointUrl: (address: string, action: string, _token?: string) => string
-    getTxUrl: (tx: string) => string 
-    getAddressUrl: (address: string) => string 
+    getTxUrl: (tx: string) => string
+    getAddressUrl: (address: string) => string
 
     gasToken: string
     wrappedGasToken: string
     wrappedGasTokenAddress: string
 
     constructor(
-        gasToken: string, 
-        wrappedGasToken: string, 
-        wrappedGasTokenAddress: string, 
+        gasToken: string,
+        wrappedGasToken: string,
+        wrappedGasTokenAddress: string,
         getTxEndpointUrl: (address: string, action: string, _token?: string) => string,
         getTxUrl: (tx: string) => string,
         getAddressUrl: (address: string) => string) {
-            this.gasToken = gasToken
-            this.wrappedGasToken = wrappedGasToken
-            this.wrappedGasTokenAddress = wrappedGasTokenAddress
-            this.getTxEndpointUrl = getTxEndpointUrl
-            this.getTxUrl = getTxUrl
-            this.getAddressUrl = getAddressUrl
-         }
+        this.gasToken = gasToken
+        this.wrappedGasToken = wrappedGasToken
+        this.wrappedGasTokenAddress = wrappedGasTokenAddress
+        this.getTxEndpointUrl = getTxEndpointUrl
+        this.getTxUrl = getTxUrl
+        this.getAddressUrl = getAddressUrl
+    }
 
-    getInternalTxUrl(address: string,  _token?: string): string {return this.getTxEndpointUrl(address, 'txlistinternal', _token)}
-    getNormalTxUrl(address: string, _token?: string): string {return this.getTxEndpointUrl(address, 'txlist', _token)}
-    getERC20TxUrl(address: string,  _token?: string): string {return this.getTxEndpointUrl(address, 'tokentx', _token)}
-    getERC721TxUrl(address: string, _token?: string): string {return this.getTxEndpointUrl(address, 'tokennfttx', _token)}
+    getInternalTxUrl(address: string, _token?: string): string { return this.getTxEndpointUrl(address, 'txlistinternal', _token) }
+    getNormalTxUrl(address: string, _token?: string): string { return this.getTxEndpointUrl(address, 'txlist', _token) }
+    getERC20TxUrl(address: string, _token?: string): string { return this.getTxEndpointUrl(address, 'tokentx', _token) }
+    getERC721TxUrl(address: string, _token?: string): string { return this.getTxEndpointUrl(address, 'tokennfttx', _token) }
 
     async getTxJson(url: string) {
         console.log('Loading data from: ' + url)
         try {
             const r = await fetch(url)
-            const r_1  = await r.json()
-            const r_2  = r_1['result']
+            const r_1 = await r.json()
+            const r_2 = r_1['result']
             return r_2
         } catch (e) {
             throw `Error in URL ${url}. ${e}`
         }
     }
 
-    async getInternalTxs(address: string,  _token?: string): Promise<internalRawTx[]> {
-        const internalRawTx: internalRawTx[] = await this.getTxJson(this.getInternalTxUrl(address, _token))
-        
-        return internalRawTx
-    }
+    async getInternalTxs(address: string, _token?: string): Promise<internalRawTx[]> {
+        const internalRawTx: internalRawTx[] = await this.getTxJson(this.getInternalTxUrl(address, _token)).then(p => p.map((iTx: internalRawTx): internalRawTx => {
+            iTx.tokenDecimal = 18
+            iTx.tokenName = 'Matic',
+                iTx.tokenSymbol = 'Matic',
+                iTx.contractAddress = ''
+            return iTx
+        }))
 
-    // static processTx(tx: normalRawTx[]|internalRawTx[]|tokenERC20RawTx[]|tokenNFTRawTx[]): processedTx {
-    //     return {}
-    // }
-
-    async getNormalTx(address: string,  _token?: string): Promise<normalRawTx[]> {
-        const normalRawtx: normalRawTx[] =  await this.getTxJson(this.getNormalTxUrl(address, _token)).then(p => p.map((nTx: normalRawTx): normalRawTx => {nTx.tokenDecimal=18; return nTx}))
-
-        // Is wrapping?. If it's sending to the wrapped token address, then it's wrapping the token.
-        const wrapMaticTc: normalRawTx[] = normalRawtx
-            .filter(nTx => nTx.to === this.wrappedGasTokenAddress)
+        // Is unwrapping?. If it's receiving tokens from the wrapped token address, then it's unwrapping the token.
+        const wrapMaticTc: internalRawTx[] = internalRawTx
+            .filter(nTx => nTx.from === this.wrappedGasTokenAddress)
             .map(nTx => {
-                const wrapTokenTx = Object.assign({}, nTx) 
+                const wrapTokenTx = Object.assign({}, nTx)
 
                 // Create the add WMATIC tx
                 wrapTokenTx.from = nTx.to
                 wrapTokenTx.to = nTx.from
                 wrapTokenTx.contractAddress = this.wrappedGasTokenAddress
-                wrapTokenTx.value = -nTx.value
+                wrapTokenTx.tokenName = this.wrappedGasToken,
+                    wrapTokenTx.tokenSymbol = this.wrappedGasToken
+                return wrapTokenTx
+            })
+
+        return internalRawTx
+    }
+
+
+    async getNormalTx(address: string, _token?: string): Promise<normalRawTx[]> {
+
+        const normalRawtx: normalRawTx[] = await this.getTxJson(this.getNormalTxUrl(address, _token)).then(p => {
+            return p.filter((nTx: normalRawTx) => nTx.txreceipt_status === '1')
+             .map((nTx: normalRawTx): normalRawTx => {
+                nTx.tokenDecimal = 18
+                nTx.tokenName = 'Matic',
+                nTx.tokenSymbol = 'Matic',
+                nTx.contractAddress = ''
+                return nTx
+            })
+        })
+
+        // Is wrapping?. If it's sending to the wrapped token address, then it's wrapping the token.
+        const wrapMaticTc: normalRawTx[] = normalRawtx
+            .filter(nTx => nTx.to === this.wrappedGasTokenAddress)
+            .map(nTx => {
+                const wrapTokenTx = Object.assign({}, nTx)
+
+                // Create the add WMATIC tx
+                wrapTokenTx.from = nTx.to
+                wrapTokenTx.to = nTx.from
+                wrapTokenTx.contractAddress = this.wrappedGasTokenAddress
+                wrapTokenTx.tokenName = this.wrappedGasToken,
+                    wrapTokenTx.tokenSymbol = this.wrappedGasToken
                 return wrapTokenTx
             })
 
         return normalRawtx.concat(normalRawtx)
     }
 
-    getERC20Txs(address: string,  _token?: string): Promise<tokenERC20RawTx[]> {
-        return this.getTxJson(this.getERC20TxUrl(address, _token)) 
+    getERC20Txs(address: string, _token?: string): Promise<tokenERC20RawTx[]> {
+        return this.getTxJson(this.getERC20TxUrl(address, _token))
     }
 
-    getERC721Txs(address: string,  _token?: string): Promise<tokenNFTRawTx[]> {
+    getERC721Txs(address: string, _token?: string): Promise<tokenNFTRawTx[]> {
         return this.getTxJson(this.getERC721TxUrl(address, _token))
-     }
+    }
 
-    getAllTxs(address: string,  _token?: string): Promise<(normalRawTx|internalRawTx|tokenERC20RawTx|tokenNFTRawTx)[]> {
+    getAllTxs(address: string, _token?: string): Promise<(normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx)[]> {
         const allTx = Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
