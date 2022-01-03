@@ -1,6 +1,7 @@
 import { walletProcessResult, processedTx } from "../interfaces"
 import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
+import saveToCsv from "../../saveToCsv"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
@@ -119,6 +120,9 @@ export class EthTxGetter {
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
         ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx)))
+
+        // Save file to csv
+        saveToCsv(await allTx, `${address}.csv`)
 
         return [address, await allTx]
     }

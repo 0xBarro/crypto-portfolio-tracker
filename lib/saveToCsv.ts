@@ -1,7 +1,8 @@
 import fs from 'fs'
 import path from 'path/posix'
+import { processedTx } from './blockchainExplorers/interfaces'
 
-const saveToCsv = (obj: {[key: string]: string|number}[], fileName: string, outputFolder='output'): void => {
+const saveToCsv = (obj: processedTx[], fileName: string, outputFolder='output'): void => {
 
     // Create the folder
     if (!fs.existsSync(outputFolder)){
@@ -21,7 +22,7 @@ const saveToCsv = (obj: {[key: string]: string|number}[], fileName: string, outp
     fs.writeFileSync(fullFilePath, columnsToSave.reduce((l, r) => l + ',' + r) + '\n')
 
     obj.forEach(e => {
-        const rowToSave = columnsToSave.map(k => String(e[k])).reduce((l, r) => l + ',' + r) + '\n'
+        const rowToSave = Object.values(e).reduce((l, r) => l + ',' + r) + '\n'
         fs.appendFileSync(fullFilePath, rowToSave)
     })
 
