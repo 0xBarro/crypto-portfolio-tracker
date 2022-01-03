@@ -147,7 +147,9 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
         txHash: rawTx.hash,
         from: rawTx.from,
         to: rawTx.to,
-        gasUsed: +rawTx.gasUsed
+        gasUsed: +rawTx.gasUsed,
+        tokenName: rawTx.tokenName,
+        tokenSymbol: rawTx.tokenSymbol
     }
 }
 
