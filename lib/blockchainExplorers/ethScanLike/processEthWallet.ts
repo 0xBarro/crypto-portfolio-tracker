@@ -61,7 +61,7 @@ export class EthTxGetter {
         }))
 
         // Is unwrapping?. If it's receiving tokens from the wrapped token address, then it's unwrapping the token.
-        const wrapMaticTc: internalRawTx[] = internalRawTx
+        const unWrapMaticTc: internalRawTx[] = internalRawTx
             .filter(nTx => nTx.from === this.wrappedGasTokenAddress)
             .map(nTx => {
                 const wrapTokenTx = Object.assign({}, nTx)
@@ -75,7 +75,7 @@ export class EthTxGetter {
                 return wrapTokenTx
             })
 
-        return internalRawTx
+        return internalRawTx.concat(unWrapMaticTc)
     }
 
 
@@ -107,7 +107,7 @@ export class EthTxGetter {
                 return wrapTokenTx
             })
 
-        return normalRawtx.concat(normalRawtx)
+        return normalRawtx.concat(wrapMaticTc)
     }
 
     getERC20Txs(address: string, _token?: string): Promise<tokenERC20RawTx[]> {
