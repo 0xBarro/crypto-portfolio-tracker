@@ -7,6 +7,7 @@ dotenv.config()
 const polygon = new EthTxGetter(
         'MATIC',
         'WMATIC',
+        'matic-network',
         '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
         (address: string, action: string, _token?: string): string => {
             const token = (_token === undefined) ? process.env['POLYGONSCAN_KEY'] : _token // This is just to allow for the testing

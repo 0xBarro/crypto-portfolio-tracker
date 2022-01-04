@@ -17,6 +17,7 @@ export interface dateObj {
 }
 
 export interface processedTx {
+    unitPrice: number|undefined,
     timestamp: number,
     dateStr: string,
     dateOnlyStr: string,

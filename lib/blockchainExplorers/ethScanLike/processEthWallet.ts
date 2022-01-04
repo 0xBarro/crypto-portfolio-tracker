@@ -1,7 +1,9 @@
 import { walletProcessResult, processedTx } from "../interfaces"
 import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
+import priceObj from "../../priceFeeds/consts"
 import saveToCsv from "../../saveToCsv"
+import { PureComponent } from "react"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
@@ -12,15 +14,18 @@ export class EthTxGetter {
 
     gasToken: string
     wrappedGasToken: string
+    gasTokenCGId: string
     wrappedGasTokenAddress: string
 
     constructor(
         gasToken: string,
         wrappedGasToken: string,
+        gasTokenCGId: string,
         wrappedGasTokenAddress: string,
         getTxEndpointUrl: (address: string, action: string, _token?: string) => string,
         getTxUrl: (tx: string) => string,
         getAddressUrl: (address: string) => string) {
+        this.gasTokenCGId = gasTokenCGId
         this.gasToken = gasToken
         this.wrappedGasToken = wrappedGasToken
         this.wrappedGasTokenAddress = wrappedGasTokenAddress
@@ -114,25 +119,27 @@ export class EthTxGetter {
     }
 
     async getAllTxs(address: string, _token?: string): Promise<walletProcessResult> {
+
         const allTx = await Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
-        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx)))
+        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId)))
 
-        allTx.sort((l, r) => l.timestamp - r.timestamp)
+        const processedAllTx = await Promise.all(allTx)
 
+        processedAllTx.sort((l, r) => l.timestamp - r.timestamp)
 
         // Save file to csv
-        saveToCsv(allTx, `${address}.csv`)
+        saveToCsv(processedAllTx, `${address}.csv`)
 
-        return [address, allTx]
+        return [address, processedAllTx]
     }
 }
 
 
-const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx): processedTx => {
+const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx, gasToken: string, gasTokenCGId: string): Promise<processedTx> => {
     const tokenDecimal: number = (rawTx.tokenDecimal === undefined) ? 1 : (10 ** -rawTx.tokenDecimal)
     const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value * tokenDecimal // For NFT transactionst here is no value field
     const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
@@ -141,8 +148,9 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
 
     const valueSign = (rawTx.to === wallet) ? 1 : -1
 
-    // TODO: Fix amount for gas token because there is not tokenDecimal field
-    // TODO: Infer Matic/WMATIC transactions
+    const isGasTokenTx = rawTx.tokenName === gasToken
+    const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
+
     // TODO: Process the swaps
     // TODO: Merge with coingecko API
     // TODO: Identify swap type
@@ -151,6 +159,7 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
     return {
         amount: valueSign * amount,
         timestamp: timestamp,
+        unitPrice: await unitPrice,
         dateStr: dateStr,
         dateOnlyStr: dateOnlyStr,
         gasPaid: gasPaid,
