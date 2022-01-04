@@ -11,6 +11,8 @@ export class EthTxGetter {
     getTxEndpointUrl: (address: string, action: string, _token?: string) => string
     getTxUrl: (tx: string) => string
     getAddressUrl: (address: string) => string
+    getCurrentGasBalance: (address: string, gasToken: string) => Promise<[string, number]>
+    getCurrentTokenBalance: (address: string, tokenCA: string, tokenName: string) => Promise<[string, number]>
 
     gasToken: string
     wrappedGasToken: string
@@ -24,7 +26,9 @@ export class EthTxGetter {
         wrappedGasTokenAddress: string,
         getTxEndpointUrl: (address: string, action: string, _token?: string) => string,
         getTxUrl: (tx: string) => string,
-        getAddressUrl: (address: string) => string) {
+        getAddressUrl: (address: string) => string,
+        getCurrentGasBalance: (address: string, gasToken: string) => Promise<[string, number]>,
+        getCurrentTokenBalance: (address: string, tokenCA: string, tokenName: string) => Promise<[string, number]>) {
         this.gasTokenCGId = gasTokenCGId
         this.gasToken = gasToken
         this.wrappedGasToken = wrappedGasToken
@@ -32,6 +36,8 @@ export class EthTxGetter {
         this.getTxEndpointUrl = getTxEndpointUrl
         this.getTxUrl = getTxUrl
         this.getAddressUrl = getAddressUrl
+        this.getCurrentGasBalance = getCurrentGasBalance
+        this.getCurrentTokenBalance = getCurrentTokenBalance
     }
 
     getInternalTxUrl(address: string, _token?: string): string { return this.getTxEndpointUrl(address, 'txlistinternal', _token) }
@@ -114,8 +120,9 @@ export class EthTxGetter {
         return this.getTxJson(this.getERC20TxUrl(address, _token))
     }
 
-    getERC721Txs(address: string, _token?: string): Promise<tokenNFTRawTx[]> {
-        return this.getTxJson(this.getERC721TxUrl(address, _token)).then(p => p.map((nftTx: tokenNFTRawTx): tokenNFTRawTx => {nftTx.value = 1; return nftTx}))
+    async getERC721Txs(address: string, _token?: string): Promise<tokenNFTRawTx[]> {
+        const p = await this.getTxJson(this.getERC721TxUrl(address, _token))
+        return p.map((nftTx: tokenNFTRawTx): tokenNFTRawTx => { nftTx.value = 1; return nftTx })
     }
 
     async getAllTxs(address: string, _token?: string): Promise<walletProcessResult> {
@@ -135,6 +142,10 @@ export class EthTxGetter {
         saveToCsv(processedAllTx, `${address}.csv`)
 
         return [address, processedAllTx]
+    }
+
+    async getCurrentWalletBalance(address: string, tokenList: Set<String>): Promise<{[token: string]: number}> {
+        return {}
     }
 }
 
