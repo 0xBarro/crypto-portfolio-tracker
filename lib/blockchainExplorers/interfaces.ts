@@ -17,8 +17,10 @@ export interface dateObj {
 }
 
 export interface processedTx {
+    timestamp: number,
+    dateStr: string,
+    dateOnlyStr: string,
     amount: number,
-    date: dateObj,
     tokenName: string,
     tokenSymbol: string,
     gasPaid: number,

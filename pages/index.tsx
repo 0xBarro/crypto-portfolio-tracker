@@ -5,7 +5,7 @@ import processAll from '../lib/processWallets'
 
 export async function getStaticProps() {
   const allTxdata = await processAll(true)
-  console.log(allTxdata.polygon)
+
   return {
     props: {
       txData: allTxdata,

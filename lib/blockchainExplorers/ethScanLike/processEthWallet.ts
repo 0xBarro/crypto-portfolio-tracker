@@ -134,6 +134,9 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
     const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value * tokenDecimal // For NFT transactionst here is no value field
     const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
     const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
+    const {dateStr, dateOnlyStr, timestamp} = processTimestamp(+rawTx.timestamp)
+
+    console.log(processTimestamp(+rawTx.timestamp))
 
     // TODO: Fix amount for gas token because there is not tokenDecimal field
     // TODO: Infer Matic/WMATIC transactions
@@ -144,7 +147,9 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
 
     return {
         amount: amount,
-        date: processTimestamp(+rawTx.timestamp),
+        timestamp: timestamp,
+        dateStr: dateStr,
+        dateOnlyStr: dateOnlyStr,
         gasPaid: gasPaid,
         txHash: rawTx.hash,
         from: rawTx.from,
