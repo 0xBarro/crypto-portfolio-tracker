@@ -19,10 +19,10 @@ const saveToCsv = (obj: processedTx[], fileName: string, outputFolder='output'):
 
     //  Save the columns
     const columnsToSave = Object.keys(obj[0])
-    fs.writeFileSync(fullFilePath, columnsToSave.reduce((l, r) => l + ',' + r) + '\n')
+    fs.writeFileSync(fullFilePath, columnsToSave.reduce((l, r) => l + ';' + r) + '\n')
 
     obj.forEach(e => {
-        const rowToSave = Object.values(e).reduce((l, r) => l + ',' + r) + '\n'
+        const rowToSave = Object.values(e).reduce((l, r) => l + ';' + r) + '\n'
         fs.appendFileSync(fullFilePath, rowToSave)
     })
 

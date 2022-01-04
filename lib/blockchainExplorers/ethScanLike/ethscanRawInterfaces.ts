@@ -1,6 +1,6 @@
 export interface baseTx {
     blocknumber: string,
-    timestamp: string,
+    timeStamp: string,
     hash: string,
     gas: string,
     gasUsed: string
