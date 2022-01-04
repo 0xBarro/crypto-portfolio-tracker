@@ -114,17 +114,20 @@ export class EthTxGetter {
     }
 
     async getAllTxs(address: string, _token?: string): Promise<walletProcessResult> {
-        const allTx = Promise.all([
+        const allTx = await Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
         ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx)))
 
-        // Save file to csv
-        saveToCsv(await allTx, `${address}.csv`)
+        allTx.sort((l, r) => l.timestamp - r.timestamp)
 
-        return [address, await allTx]
+
+        // Save file to csv
+        saveToCsv(allTx, `${address}.csv`)
+
+        return [address, allTx]
     }
 }
 
@@ -136,6 +139,8 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
     const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
     const {dateStr, dateOnlyStr, timestamp} = processTimestamp(+rawTx.timeStamp)
 
+    const valueSign = (rawTx.to === wallet) ? 1 : -1
+
     // TODO: Fix amount for gas token because there is not tokenDecimal field
     // TODO: Infer Matic/WMATIC transactions
     // TODO: Process the swaps
@@ -144,7 +149,7 @@ const processEthWalletTx = (wallet: string, rawTx: normalRawTx | internalRawTx |
     // TODO: Calculate Gains
 
     return {
-        amount: amount,
+        amount: valueSign * amount,
         timestamp: timestamp,
         dateStr: dateStr,
         dateOnlyStr: dateOnlyStr,
