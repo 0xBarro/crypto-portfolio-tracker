@@ -14,7 +14,7 @@ const processWalletsChain = async (chain: string, debug: boolean): Promise<chain
     if (wallets === undefined) { console.log(`No wallets found`); return undefined }
     else {
         const txGetter = constObj[blockchainName]
-        const result = await Promise.all(wallets.map(wallet => txGetter.getAllTxs(wallet)))
+        const result = await Promise.all(wallets.map(wallet => txGetter.getAllTxs(wallet.toLowerCase())))
         return [blockchainName, Object.fromEntries(result)]
     }
     }

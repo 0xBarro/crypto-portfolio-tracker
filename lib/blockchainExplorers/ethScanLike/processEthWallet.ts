@@ -146,7 +146,10 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     const gasPaid: number = (rawTx.from === wallet) ?  gasPrice * +rawTx.gasUsed * (10 ** -18) : 0
     const {dateStr, dateOnlyStr, timestamp} = processTimestamp(+rawTx.timeStamp)
 
-    const valueSign = (rawTx.to === wallet) ? 1 : -1
+    let valueSign = 0
+    if (rawTx.to === wallet) {valueSign =  1}
+    else if (rawTx.from === wallet) {valueSign = -1}
+    else {throw `Transaction does not contain wallet ${wallet}`}
 
     const isGasTokenTx = rawTx.tokenName === gasToken
     const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
