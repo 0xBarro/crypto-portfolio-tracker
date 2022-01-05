@@ -32,6 +32,7 @@ class buyQueue {
                 amountLeftToSell -= amountSold
                 this.buyHist[tokenCA] = this.buyHist[tokenCA].slice(1)
             } else {
+                amountLeftToSell = 0
                 this.buyHist[tokenCA][0].amount -= amountSold
             }
             
