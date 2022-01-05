@@ -9,4 +9,5 @@ test('Test the buyQ results', async () => {
 
     const res = buyQ.calcGainsSell(tokenCA, '01/02/2000', 50, 2)
     expect(res.capGains).toBe(100)
+
 })

@@ -63,7 +63,7 @@ export class EthTxGetter {
             iTx.tokenDecimal = 18
             iTx.tokenName = this.gasToken,
             iTx.tokenSymbol = this.gasToken,
-            iTx.contractAddress = ''
+            iTx.contractAddress = this.gasToken
             return iTx
         }))
 
@@ -94,7 +94,7 @@ export class EthTxGetter {
                 nTx.tokenDecimal = 18
                 nTx.tokenName = this.gasToken,
                 nTx.tokenSymbol = this.gasToken,
-                nTx.contractAddress = ''
+                nTx.contractAddress = this.gasToken
                 return nTx
             })
         })

@@ -2,7 +2,7 @@ import { buyQueueInt, buyQueueReg, sellResult} from "./interfaces"
 
 class buyQueue {
     buyHist: buyQueueInt = {}
-    amountLim = 10^-4
+    amountLim = 0.0001
 
     addBuy(tokenCA: string, dateStr: string, amount: number, unitPrice: number|undefined): void {   
          if (!(tokenCA in this.buyHist)) {
@@ -18,9 +18,10 @@ class buyQueue {
 
          let amountLeftToSell = amountSell
          while (amountLeftToSell > this.amountLim) {
+            if (this.buyHist[tokenCA].length === 0) {throw `Now more tokens left to sell for tokenCA ${tokenCA} with ${amountLeftToSell} left to sell.`}
             const {amount, dateStr, unitPrice} = this.buyHist[tokenCA][0]
 
-            const amountSold = Math.max(amountLeftToSell, amount)
+            const amountSold = Math.min(amountLeftToSell, amount)
             const deltaPrice: number | undefined = (priceSell === undefined ||unitPrice === undefined ) ? undefined : priceSell - unitPrice  
             const capGains: number | undefined = (deltaPrice === undefined) ? undefined : deltaPrice * amountSold
 
