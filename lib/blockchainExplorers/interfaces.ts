@@ -17,7 +17,8 @@ export interface dateObj {
 }
 
 export interface processedTx {
-    capGains: string,
+    capGains: number|undefined,
+    buyList: string,
     unitPrice: number|undefined,
     contractAddress: string,
     timestamp: number,

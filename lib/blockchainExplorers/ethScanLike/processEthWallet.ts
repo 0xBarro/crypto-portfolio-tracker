@@ -1,4 +1,4 @@
-import { walletProcessResult, processedTx} from "../interfaces"
+import { walletProcessResult, processedTx, sellResult} from "../interfaces"
 import buyQueue from "../buyQueue"
 import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
@@ -138,13 +138,12 @@ export class EthTxGetter {
         ]).then(p => p.flat())
 
         const processedAllTx = []
+        allTx.sort((l, r) => +l.timeStamp - +r.timeStamp)
 
         for (let i=0; i < allTx.length; i++) {
             const rTx = allTx[i]
             processedAllTx.push(await processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ))
         }
-
-        processedAllTx.sort((l, r) => l.timestamp - r.timestamp)
 
         // Save file to csv-
         saveToCsv(processedAllTx, `${address}.csv`)
@@ -183,7 +182,7 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     const isGasTokenTx = rawTx.tokenName === gasToken
     const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
 
-    let capGains = {}
+    let capGains: sellResult = {capGains: undefined, buyList: []}
     if (valueSign === 1) {
         buyQ.addBuy(rawTx.contractAddress, dateStr, amount, await unitPrice)
     }
@@ -197,7 +196,8 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     // TODO: Calculate Gains
 
     return {
-        capGains: JSON.stringify(capGains),
+        capGains: capGains['capGains'],
+        buyList: JSON.stringify(capGains?.buyList),
         amount: valueSign * amount,
         timestamp: timestamp,
         contractAddress: rawTx.contractAddress,
