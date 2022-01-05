@@ -47,6 +47,7 @@ export const processCoinsList = (coinsList: coinList[]): processedCoinList => {
 
 export const getCoinHistory = async (token: string, currency='eur', days=365): Promise<coinHistory> => {
     const url = `https://api.coingecko.com/api/v3/coins/${token}/market_chart?vs_currency=${currency}&days=${days}`
+    console.log(`Getting Token ${token} History in ${currency}: ` + url)
     const r: Array<[number, number]> = await fetch(url).then(r => r.json()).then(x => x['prices'])
     const processedResult:coinHistory = Object.fromEntries(r.map(p => [processTimestamp(p[0], 1).dateOnlyStr, p[1]]))
     return processedResult

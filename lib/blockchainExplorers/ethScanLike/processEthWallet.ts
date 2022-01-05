@@ -135,9 +135,14 @@ export class EthTxGetter {
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
-        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ)))
+        ]).then(p => p.flat())
 
-        const processedAllTx = await Promise.all(allTx)
+        const processedAllTx = []
+
+        for (let i=0; i < allTx.length; i++) {
+            const rTx = allTx[i]
+            processedAllTx.push(await processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ))
+        }
 
         processedAllTx.sort((l, r) => l.timestamp - r.timestamp)
 

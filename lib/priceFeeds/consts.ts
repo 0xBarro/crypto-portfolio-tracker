@@ -9,9 +9,7 @@ const priceObj = {
     coinstPricePerID: _coinstPricePerID, // Currently fetched coin List
     async updatePriceId(tokenId: string): Promise<void> {
         if (!(tokenId in this.coinstPricePerID)){
-            await getCoinHistory(tokenId).then(coinHist => {
-                this.coinstPricePerID[tokenId] = coinHist
-            })
+            this.coinstPricePerID[tokenId] = await getCoinHistory(tokenId)
         }
     },
     async getIdFromCA(chain: string, tokenCA: string): Promise<string|undefined> {return  (await coinList)[chain][tokenCA]?.id},
