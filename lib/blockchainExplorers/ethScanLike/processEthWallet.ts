@@ -1,9 +1,10 @@
-import { walletProcessResult, processedTx } from "../interfaces"
+import { walletProcessResult, processedTx} from "../interfaces"
+import buyQueue from "../buyQueue"
 import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
 import priceObj from "../../priceFeeds/consts"
 import saveToCsv from "../../saveToCsv"
-import { PureComponent } from "react"
+import { json } from "stream/consumers"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
@@ -11,7 +12,7 @@ export class EthTxGetter {
     getTxEndpointUrl: (address: string, action: string, _token?: string) => string
     getTxUrl: (tx: string) => string
     getAddressUrl: (address: string) => string
-    getCurrentGasBalance: (address: string, gasToken: string) => Promise<[string, number]>
+    getCurrentGasBalance: (address: string, gasToken: string) => Promise<number>
     getCurrentTokenBalance: (address: string, tokenCA: string, tokenName: string) => Promise<[string, number]>
 
     gasToken: string
@@ -27,7 +28,7 @@ export class EthTxGetter {
         getTxEndpointUrl: (address: string, action: string, _token?: string) => string,
         getTxUrl: (tx: string) => string,
         getAddressUrl: (address: string) => string,
-        getCurrentGasBalance: (address: string, gasToken: string) => Promise<[string, number]>,
+        getCurrentGasBalance: (address: string, gasToken: string) => Promise<number>,
         getCurrentTokenBalance: (address: string, tokenCA: string, tokenName: string) => Promise<[string, number]>) {
         this.gasTokenCGId = gasTokenCGId
         this.gasToken = gasToken
@@ -109,7 +110,7 @@ export class EthTxGetter {
                 wrapTokenTx.to = nTx.from
                 wrapTokenTx.contractAddress = this.wrappedGasTokenAddress
                 wrapTokenTx.tokenName = this.wrappedGasToken,
-                    wrapTokenTx.tokenSymbol = this.wrappedGasToken
+                wrapTokenTx.tokenSymbol = this.wrappedGasToken
                 return wrapTokenTx
             })
 
@@ -127,19 +128,32 @@ export class EthTxGetter {
 
     async getAllTxs(address: string, _token?: string): Promise<walletProcessResult> {
 
+        const buyQ: buyQueue= new buyQueue()
+
         const allTx = await Promise.all([
             this.getNormalTx(address, _token),
             this.getInternalTxs(address, _token),
             this.getERC20Txs(address, _token),
             this.getERC721Txs(address, _token),
-        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId)))
+        ]).then(p => p.flat().map(rTx => processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ)))
 
         const processedAllTx = await Promise.all(allTx)
 
         processedAllTx.sort((l, r) => l.timestamp - r.timestamp)
 
-        // Save file to csv
+        // Save file to csv-
         saveToCsv(processedAllTx, `${address}.csv`)
+
+        const tokensNameCAMap = Object.fromEntries(
+            processedAllTx.map(t => [t.contractAddress, t.tokenName])
+        ) 
+
+        // TODO: Get current balance for every token
+        // const allTokensCurrentBalance: [string, number][] = await Promise.all(Object.entries(tokensNameCAMap).map(([tokenCA, tokenName]) => this.getCurrentTokenBalance(address, tokenCA, tokenName)))
+        // const allTokensCurrentBalanceObj = Object.fromEntries(allTokensCurrentBalance)
+
+        // allTokensCurrentBalanceObj[this.gasToken] = await this.getCurrentGasBalance(address, this.gasToken)
+        // console.log(allTokensCurrentBalance)
 
         return [address, processedAllTx]
     }
@@ -149,8 +163,7 @@ export class EthTxGetter {
     }
 }
 
-
-const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx, gasToken: string, gasTokenCGId: string): Promise<processedTx> => {
+const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalRawTx | tokenERC20RawTx | tokenNFTRawTx, gasToken: string, gasTokenCGId: string, buyQ: buyQueue): Promise<processedTx> => {
     const tokenDecimal: number = (rawTx.tokenDecimal === undefined) ? 1 : (10 ** -rawTx.tokenDecimal)
     const amount: number = (rawTx.value === undefined) ? 1 : rawTx.value * tokenDecimal // For NFT transactionst here is no value field
     const gasPrice: number = (rawTx.gasPrice === undefined) ? 0 : rawTx.gasPrice
@@ -165,14 +178,24 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     const isGasTokenTx = rawTx.tokenName === gasToken
     const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
 
+    let capGains = {}
+    if (valueSign === 1) {
+        buyQ.addBuy(rawTx.contractAddress, dateStr, amount, await unitPrice)
+    }
+    else {
+        capGains = buyQ.calcGainsSell(rawTx.contractAddress, dateStr, amount, await unitPrice)
+    }
+
     // TODO: Process the swaps
     // TODO: Merge with coingecko API
     // TODO: Identify swap type
     // TODO: Calculate Gains
 
     return {
+        capGains: JSON.stringify(capGains),
         amount: valueSign * amount,
         timestamp: timestamp,
+        contractAddress: rawTx.contractAddress,
         unitPrice: await unitPrice,
         dateStr: dateStr,
         dateOnlyStr: dateOnlyStr,

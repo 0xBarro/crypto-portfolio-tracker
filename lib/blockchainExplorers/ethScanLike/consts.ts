@@ -15,14 +15,14 @@ const polygon = new EthTxGetter(
         },
         (tx: string): string  => {return `https://polygonscan.com/tx/${tx}`},
         (address: string): string => {return `https://polygonscan.com/address/${address}`},
-        async (address: string, gasToken: string): Promise<[string, number]> => {
+        async (address: string): Promise<number> => {
             const url = `https://api.polygonscan.com/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env['POLYGONSCAN_KEY']}`
-            const result: Promise<number> = fetch(url).then(p => p.json()).then((p: {status: string, message: string, result: string}): number => +p.result)
-            return [gasToken, await result]
+            const result: number = await fetch(url).then(p => p.json()).then((p: {status: string, message: string, result: string}): number => +p.result).catch(e => e)
+            return result
         },
         async (address: string, tokenCA: string, tokenName: string): Promise<[string, number]> => {
-            const url = `https://api.polygonscan.com/api?module=account&action=tokenbalance&contractaddress=${address}&address=${tokenCA}&tag=latest&apikey=${process.env['POLYGONSCAN_KEY']}`
-            const result: Promise<number> = fetch(url).then(p => p.json()).then((p: {status: string, message: string, result: string}): number => +p.result)
+            const url = `https://api.polygonscan.com/api?module=account&action=tokenbalance&contractaddress=${tokenCA}&address=${address}&tag=latest&apikey=${process.env['POLYGONSCAN_KEY']}`
+            const result: Promise<number> = fetch(url).then(p => p.json()).then((p: {status: string, message: string, result: string}): number => +p.result).catch(e => e)
             return [tokenName, await result]
         }
 

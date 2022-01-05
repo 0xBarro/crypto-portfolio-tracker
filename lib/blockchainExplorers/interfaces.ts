@@ -17,7 +17,9 @@ export interface dateObj {
 }
 
 export interface processedTx {
+    capGains: string,
     unitPrice: number|undefined,
+    contractAddress: string,
     timestamp: number,
     dateStr: string,
     dateOnlyStr: string,
@@ -31,17 +33,14 @@ export interface processedTx {
     to: string,
 }
 
-export interface processedSwap {
-    amount: number,
-    tokens: {token: tokenTx},
-    date: dateObj,
-    gasPaid: number,
-    txHash: string,
-    from: string,
-    to: string,
-    balanceAfterTx: {token: balanceAfterTx},
-    valueAfterTx: number 
+export interface buyQueueReg {dateStr: string, unitPrice: number|undefined, amount: number}
+
+export interface buyQueueInt {
+    [tokenCA: string]: buyQueueReg[]
 }
+
+export interface sellResult {capGains: number|undefined, buyList: buyQueueReg[]}
+
 
 export interface tokenCollection{
     totalValue: number,
