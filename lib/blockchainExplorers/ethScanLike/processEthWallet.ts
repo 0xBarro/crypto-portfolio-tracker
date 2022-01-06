@@ -139,24 +139,16 @@ export class EthTxGetter {
         const processedAllTx = []
         allTx.sort((l, r) => +l.timeStamp - +r.timeStamp)
 
+        // Processed the wallet, including pick up the price
         for (let i=0; i < allTx.length; i++) {
             const rTx = allTx[i]
             processedAllTx.push(await processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ))
         }
 
+        // Tags the swap, infers price when possible and calculates capital gains
+
         // Save file to csv-
         saveToCsv(processedAllTx, `${address}.csv`)
-
-        const tokensNameCAMap = Object.fromEntries(
-            processedAllTx.map(t => [t.contractAddress, t.tokenName])
-        ) 
-
-        // TODO: Get current balance for every token
-        // const allTokensCurrentBalance: [string, number][] = await Promise.all(Object.entries(tokensNameCAMap).map(([tokenCA, tokenName]) => this.getCurrentTokenBalance(address, tokenCA, tokenName)))
-        // const allTokensCurrentBalanceObj = Object.fromEntries(allTokensCurrentBalance)
-
-        // allTokensCurrentBalanceObj[this.gasToken] = await this.getCurrentGasBalance(address, this.gasToken)
-        // console.log(allTokensCurrentBalance)
 
         return [address, processedAllTx]
     }
@@ -179,28 +171,13 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     else {throw `Transaction does not contain wallet ${wallet}`}
 
     const isGasTokenTx = rawTx.tokenName === gasToken
-    const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
-
-    let capGains: sellResult = {capGains: undefined, buyList: [], costBasis: undefined}
-    if (valueSign === 1) {
-        buyQ.addBuy(rawTx.contractAddress, dateStr, amount, await unitPrice)
-    }
-    else {
-        capGains = buyQ.calcGainsSell(rawTx.contractAddress, dateStr, amount, await unitPrice)
-    }
-
-    // TODO: Process the swaps
-    // TODO: Merge with coingecko API
-    // TODO: Identify swap type
-    // TODO: Calculate Gains
+    const unitPrice = await ((isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr))
 
     return {
-        capGains: capGains['capGains'],
-        buyList: JSON.stringify(capGains?.buyList),
         amount: valueSign * amount,
         timestamp: timestamp,
         contractAddress: rawTx.contractAddress,
-        unitPrice: await unitPrice,
+        unitPrice: (unitPrice === undefined) ? null: unitPrice,
         dateStr: dateStr,
         dateOnlyStr: dateOnlyStr,
         gasPaid: gasPaid,
