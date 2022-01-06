@@ -15,7 +15,7 @@ class buyQueue {
      calcGainsSell(tokenCA: string, sellDateStr: string, amountSell: number, priceSell: number|undefined): sellResult {
          if (!(tokenCA in this.buyHist)){throw `Attempting to sell ${amountSell} Token ${tokenCA} with no buy History.  `}
 
-         const result: sellResult = {capGains: 0, buyList: []}
+         const result: sellResult = {capGains: 0, buyList: [], costBasis: undefined}
 
          let amountLeftToSell = amountSell
          while (amountLeftToSell > this.amountLim) {
@@ -39,7 +39,9 @@ class buyQueue {
             
          }
 
-         return result
+        //  Update Cost Basis
+        
+        return result
      }
 }
 

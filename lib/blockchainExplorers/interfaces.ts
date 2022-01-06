@@ -40,7 +40,7 @@ export interface buyQueueInt {
     [tokenCA: string]: buyQueueReg[]
 }
 
-export interface sellResult {capGains: number|undefined, buyList: buyQueueReg[]}
+export interface sellResult {capGains: number|undefined, buyList: buyQueueReg[], costBasis: number|undefined}
 
 
 export interface tokenCollection{

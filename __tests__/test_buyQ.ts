@@ -5,7 +5,7 @@ const totalTokenAmount = (bq: buyQueueReg[]): number => {
     return bq.map(e => e.amount).reduce((l, r) => l + r)
 }
 
-test('Test the buyQ results', async () => {
+test('Test the buyQ results1', async () => {
     const buyQ = new buyQueue()
 
     const tokenCA = 'buyTokenCA'
@@ -18,5 +18,4 @@ test('Test the buyQ results', async () => {
     const res = buyQ.calcGainsSell(tokenCA, '01/02/2000', 50, 2)
     expect(totalTokenAmount(buyQ.buyHist[tokenCA])).toBe(250)
     expect(res.capGains).toBe(50)
-
 })
