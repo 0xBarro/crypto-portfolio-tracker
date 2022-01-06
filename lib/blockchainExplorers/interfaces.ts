@@ -17,9 +17,7 @@ export interface dateObj {
 }
 
 export interface processedTx {
-    capGains: number|undefined,
-    buyList: string,
-    unitPrice: number|undefined,
+    unitPrice: number|null,
     contractAddress: string,
     timestamp: number,
     dateStr: string,
@@ -32,6 +30,14 @@ export interface processedTx {
     txHash: string,
     from: string,
     to: string,
+    txType?: string
+}
+
+export interface processedTxWGains extends processedTx {
+    buysList: sellResult,
+    capGains: number|null,
+    unitCostBasis: number|null,
+    balanceAfterTx: {[token: string]: token}
 }
 
 export interface buyQueueReg {dateStr: string, unitPrice: number|undefined, amount: number}
@@ -43,13 +49,32 @@ export interface buyQueueInt {
 export interface sellResult {capGains: number|undefined, buyList: buyQueueReg[], costBasis: number|undefined}
 
 
-export interface tokenCollection{
-    totalValue: number,
+export interface token{
+    tokenExplorerLink: string,
+    tokenName: string,
+    tokenSymbol: string,
+    tokenCA: string,
+    totalValue?: number,
     amount: number
+    unitPrice?: number
 }
 
-export interface tokenTx extends tokenCollection{
-    unitPrice: number,
+export interface txFlow {
+    tokensIn: Set<string>,
+    tokensOut: Set<string>, 
+    nTotalTokens: number, 
+    defValueIn: number|undefined, 
+    defValueOut: number|undefined, 
+    defTotalValue: number|undefined
 }
 
-export interface balanceAfterTx extends tokenCollection{}
+export interface taggedTx {
+    flow(): txFlow,
+    type: string|undefined,
+    tokens: token[],
+    balanceAfterTx: {[token: string]: token}
+}
+
+export interface taggedTxs {
+    [txHash: string]: taggedTx
+}

@@ -4,6 +4,8 @@ import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
 import priceObj from "../../priceFeeds/consts"
 import saveToCsv from "../../saveToCsv"
+import txTagger from "../inferPrice"
+import calcGains from "../calcGains"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
@@ -145,12 +147,16 @@ export class EthTxGetter {
             processedAllTx.push(await processEthWalletTx(address, rTx, this.gasToken, this.gasTokenCGId, buyQ))
         }
 
-        // Tags the swap, infers price when possible and calculates capital gains
+        // Infer prices when possible and the tx type
+        const processedTxInf = txTagger(processedAllTx)
+
+        // Calculate Capital Gains
+        const processedTxInfwGains = calcGains(processedTxInf)
 
         // Save file to csv-
-        saveToCsv(processedAllTx, `${address}.csv`)
+        saveToCsv(processedTxInfwGains, `${address}.csv`)
 
-        return [address, processedAllTx]
+        return [address, processedTxInfwGains]
     }
 
     async getCurrentWalletBalance(address: string, tokenList: Set<String>): Promise<{[token: string]: number}> {
