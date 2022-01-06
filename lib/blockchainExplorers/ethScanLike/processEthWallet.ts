@@ -4,7 +4,6 @@ import { processTimestamp } from "../../utils"
 import { normalRawTx, internalRawTx, tokenERC20RawTx, tokenNFTRawTx } from "./ethscanRawInterfaces"
 import priceObj from "../../priceFeeds/consts"
 import saveToCsv from "../../saveToCsv"
-import { json } from "stream/consumers"
 
 // This is the class used to download and process al  
 export class EthTxGetter {
@@ -182,7 +181,7 @@ const processEthWalletTx = async (wallet: string, rawTx: normalRawTx | internalR
     const isGasTokenTx = rawTx.tokenName === gasToken
     const unitPrice = (isGasTokenTx) ? priceObj.getTokenPriceID(gasTokenCGId, dateOnlyStr) : priceObj.getTokenPriceCA(gasToken.toLowerCase(), rawTx.contractAddress, dateOnlyStr)
 
-    let capGains: sellResult = {capGains: undefined, buyList: []}
+    let capGains: sellResult = {capGains: undefined, buyList: [], costBasis: undefined}
     if (valueSign === 1) {
         buyQ.addBuy(rawTx.contractAddress, dateStr, amount, await unitPrice)
     }
